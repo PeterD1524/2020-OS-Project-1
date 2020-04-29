@@ -1,9 +1,0 @@
-{
-    "files.associations": {
-        "stdlib.h": "c",
-        "module.h": "c",
-        "unistd.h": "c",
-        "kernel.h": "c",
-        "linkage.h": "c"
-    }
-}
