@@ -103,10 +103,9 @@ int main() {
             processes[i].state = UNFORKED;
             scanf("%s%d%d", processes[i].N, &processes[i].R, &processes[i].T);
         }
-        printf("%s\n%d\n", S, N);
+        // printf("%s\n%d\n", S, N);
         for (int i = 0; i < N; i++) {
-            printf("%s %d %d\n", processes[i].N, processes[i].R,
-                   processes[i].T);
+            // printf("%s %d %d\n", processes[i].N, processes[i].R, processes[i].T);
         }
         qsort(processes, N, sizeof(*processes), comparebyR);
         pid_t pp = fork();
@@ -128,17 +127,17 @@ int main() {
                 unsigned long long timestamp =
                     *unitsoftimesincethestartofthemainprocess;
                 if (timestamp >= processes[qind].R) {
-                    printf("qind: %lld\ntimestamp: %lld\n", qind, timestamp);
+                    // printf("qind: %lld\ntimestamp: %lld\n", qind, timestamp);
                     char NAME[32];
                     strcpy(NAME, processes[qind].N);
                     struct process* fp = &processes[qind];
                     qind++;
                     pid_t PID;
                     PID = fork();
-                    // struct timespec* ST = malloc(sizeof(struct timespec));
-                    // syscall(GETNSTIMEOFDAY, ST);
-                    struct timeval* ST = malloc(sizeof(struct timeval));
-                    gettimeofday(ST, NULL);
+                    struct timespec* ST = malloc(sizeof(struct timespec));
+                    syscall(GETNSTIMEOFDAY, ST);
+                    // struct timeval* ST = malloc(sizeof(struct timeval));
+                    // gettimeofday(ST, NULL);
                     if (PID == -1) {
                         perror("fork");
                         exit(EXIT_FAILURE);
@@ -148,26 +147,30 @@ int main() {
                     if (PID == 0) {
                         fp->state = FORKED;
                         int T = fp->T;
-                        printf("%s %d\n", NAME, getpid());
                         for (int i = 0; i < T; i++) {
                             unitoftime();
                         }
-                        // struct timespec* FT = malloc(sizeof(struct timespec));
-                        // syscall(GETNSTIMEOFDAY, FT);
-                        struct timeval* FT = malloc(sizeof(struct timeval));
-                        gettimeofday(FT, NULL);
+                        struct timespec* FT = malloc(sizeof(struct timespec));
+                        syscall(GETNSTIMEOFDAY, FT);
+                        // struct timeval* FT = malloc(sizeof(struct timeval));
+                        // gettimeofday(FT, NULL);
                         char TAG[] = "[Project1]";
-                        // syscall(PRINTK, TAG, getpid(), ST, FT);
+                        syscall(PRINTK, TAG, getpid(), ST, FT);
+                        /*
                         printf("%s %d %ld.%ld %ld.%ld %lld %lld\n", TAG,
                                getpid(), ST->tv_sec, ST->tv_usec, FT->tv_sec,
                                FT->tv_usec, starttimestamp,
                                *unitsoftimesincethestartofthemainprocess);
+                        */
                         fp->state = DEAD;
+                        printf("%s %d\n", NAME, getpid());
                         exit(EXIT_SUCCESS);
                     } else {
                         if (sched_setscheduler(PID, SCHED_IDLE, param) == -1) {
-                            perror("sched_setscheduler");
-                            exit(EXIT_FAILURE);
+                            // perror("sched_setscheduler");
+                            if (errno != ESRCH) {
+                                exit(EXIT_FAILURE);
+                            }
                         }
                         cpu_set_t CHILDCPUset;
                         CPU_ZERO(&CHILDCPUset);
@@ -190,16 +193,15 @@ int main() {
                         *unitsoftimesincethestartofthemainprocess;
                     if (timestamp >= processes[pt].R) {
                         if (processes[pt].pid != -1) {
-                            printf("     %d\n", processes[pt].pid);
+                            // printf("     %d\n", processes[pt].pid);
                             if (sched_setscheduler(processes[pt].pid,
                                                    SCHED_OTHER, param) == -1) {
-                                perror("sched_setscheduler");
+                                // perror("sched_setscheduler");
                                 exit(EXIT_FAILURE);
                             };
-                            // pid_t waitp = waitpid(processes[pt].pid, NULL, 0);
                             while (processes[pt].state != DEAD) {
                             }
-                            printf("     %d\n", processes[pt].pid);
+                            // printf("     %d\n", processes[pt].pid);
                             pt++;
                         }
                     }
@@ -224,7 +226,7 @@ int main() {
                                 while (processes[i].pid == -1) {
                                 }
                                 if (queuesize == N) {
-                                    printf("queue\n");
+                                    // printf("queue\n");
                                     exit(EXIT_FAILURE);
                                 }
                                 queueend = (queueend + 1) % N;
@@ -261,8 +263,8 @@ int main() {
                                 if (sched_setscheduler(processes[running].pid,
                                                        SCHED_IDLE,
                                                        param) == -1) {
-                                    perror("sched_setscheduler");
-                                    printf("SCHED_IDLE %d\n", running + 1);
+                                    // perror("sched_setscheduler");
+                                    // printf("SCHED_IDLE %d\n", running + 1);
                                     if (errno != ESRCH) {
                                         exit(EXIT_FAILURE);
                                     }
@@ -272,18 +274,17 @@ int main() {
                                     (*unitsoftimesincethestartofthemainprocess -
                                      runninglastT);
                                 if (processes[running].T <= 0) {
-                                    printf("%d +1\n", running + 1);
+                                    // printf("%d +1\n", running + 1);
                                     while (processes[running].state != DEAD) {
                                     }
                                     finished++;
                                 }
                             }
-                            printf("%d -> %d %lld\n", running + 1, next + 1,
-                                   *unitsoftimesincethestartofthemainprocess);
+                            // printf("%d -> %d %lld\n", running + 1, next + 1, *unitsoftimesincethestartofthemainprocess);
                             if (sched_setscheduler(processes[next].pid,
                                                    SCHED_OTHER, param) == -1) {
-                                perror("sched_setscheduler");
-                                printf("SCHED_OTHER %d\n", next + 1);
+                                // perror("sched_setscheduler");
+                                // printf("SCHED_OTHER %d\n", next + 1);
                                 exit(EXIT_FAILURE);
                             };
                             runninglastT =
@@ -291,7 +292,7 @@ int main() {
                             if (running != -1) {
                                 if (processes[running].T > 0) {
                                     if (queuesize == N) {
-                                        printf("queue\n");
+                                        // printf("queue\n");
                                         exit(EXIT_FAILURE);
                                     }
                                     queueend = (queueend + 1) % N;
@@ -329,7 +330,7 @@ int main() {
                     if (next != -1) {
                         if (sched_setscheduler(processes[next].pid, SCHED_OTHER,
                                                param) == -1) {
-                            perror("sched_setscheduler");
+                            // perror("sched_setscheduler");
                             exit(EXIT_FAILURE);
                         };
                         while (processes[next].state != DEAD) {
@@ -367,7 +368,7 @@ int main() {
                                 if (sched_setscheduler(processes[running].pid,
                                                        SCHED_IDLE,
                                                        param) == -1) {
-                                    perror("sched_setscheduler");
+                                    // perror("sched_setscheduler");
                                     // printf("SCHED_IDLE %d\n", running + 1);
                                     if (errno != ESRCH) {
                                         exit(EXIT_FAILURE);
@@ -387,7 +388,7 @@ int main() {
                             // printf("%d -> %d\n", running + 1, next + 1);
                             if (sched_setscheduler(processes[next].pid,
                                                    SCHED_OTHER, param) == -1) {
-                                perror("sched_setscheduler");
+                                // perror("sched_setscheduler");
                                 // printf("SCHED_OTHER %d\n", next + 1);
                                 exit(EXIT_FAILURE);
                             };
