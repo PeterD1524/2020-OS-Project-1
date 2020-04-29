@@ -319,7 +319,13 @@ int main() {
                 int finished = 0;
                 while (finished < N) {
                     int next = -1;
+                    unsigned long long timestamp =
+                        *unitsoftimesincethestartofthemainprocess;
                     for (int i = 0; i < N; i++) {
+                        if (timestamp >= processes[i].R) {
+                            while (processes[i].pid == -1) {
+                            }
+                        }
                         if (processes[i].pid == -1 || processes[i].T == 0) {
                             continue;
                         }
